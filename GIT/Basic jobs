@@ -1,0 +1,27 @@
+>>>>>> Creating a new folder in a Git repository <<<<<<
+
+
+A. Open the Git repository in a terminal or command prompt.
+
+
+B. Navigate to the directory where you want to create the new folder.
+
+
+C. Use the mkdir command to create a new directory with your desired folder name. For example, to create a folder named "new_folder", type the following command:
+
+$ mkdir new_folder
+
+
+D. Use the git add command to stage the new folder and its contents for commit. For example, to stage the new_folder directory, type the following command:
+
+$ git add new_folder
+
+
+E. Use the git commit command to commit the changes to the repository. For example, to commit the new_folder directory, type the following command:
+
+$ git commit -m "Added new_folder directory"
+
+
+D. Finally, use the git push command to push the changes to the remote repository. For example, to push the changes to the default remote branch (usually "master"), type the following command:
+
+$ git push origin master
