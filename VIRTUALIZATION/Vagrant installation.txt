@@ -1,0 +1,9 @@
+On Windows PC
+
+Go to the Vagrant downloads page: https://www.vagrantup.com/downloads
+Click on the Windows download link to download the installer.
+Once the download is complete, double-click the downloaded file to start the installation process.
+Follow the prompts in the installer to complete the installation.
+During the installation process, you may be asked to grant permission for the installer to make changes to your PC. Click "Yes" to allow the installation to proceed.
+Once the installation is complete, open the Command Prompt or PowerShell and type "vagrant" to confirm that it has been installed correctly.
+If you see a list of available commands, then Vagrant has been successfully installed on your Windows PC.
