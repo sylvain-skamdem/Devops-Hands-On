@@ -129,14 +129,22 @@ d. Additional Features:
 
 1. Click your newly created hosted zone
 2. Under the **Records** tab, click **Create record** and providing the following details:
+    
     a. **Record name**: type **www**
+    
     b. **Record type**: it's **A**
+    
     c. **Enable** the option **Route traffic to**
+    
     d. In the **Choose Endpoint** field, select **Alias to S3 website Endpoint**
+    
     e. Select your region: **us-east-1** in this case
-    f. Select your **S3 Endpoint** which will habe linked to your region and bucket name
-    f. Keep **Routing Policy** to **Simple routing** and **Evaluate target health** to **yes**
-    g. Click **Create records**
+    
+    f. Select your **S3 Endpoint** which will be linked to your region and bucket name
+    
+    g. Keep **Routing Policy** to **Simple routing** and **Evaluate target health** to **yes**
+    
+    h. Click **Create records**
 
 ![Alt text](image-4.png)
 
