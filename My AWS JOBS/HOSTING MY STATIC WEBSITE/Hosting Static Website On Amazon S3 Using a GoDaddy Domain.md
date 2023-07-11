@@ -47,3 +47,101 @@ $ aws s3 sync . s3://www.conceptix-art.com
 
 ![Alt text](image-2.png)
 
+# Step 4: Add a bucket policy that makes your bucket content publicly available
+
+1. Click on your bucket
+2. Under the **Permissions** tab, scroll down and click **Edit** next to **Bucket policy**
+3. Provide a similar policy to the following where you'll change the resource line depending on your bucket name:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::www.conceptix-art.com/*"
+        }
+    ]
+}
+```
+4. Click on **Save changes**
+
+Your objects are now publicly accessible.
+
+```
+Note: The pricing for a public Amazon S3 bucket in AWS depends on the following factors:
+
+a. Storage Pricing:
+ - Standard Storage: $0.023 per GB per month for the first 50 TB.
+ - Infrequent Access (IA) Storage: $0.0125 per GB per month for the first 50 TB.
+ - One Zone-Infrequent Access (Z-IA) Storage: $0.01 per GB per month for the first 50 TB.
+ - Glacier Storage: $0.004 per GB per month for the first 50 TB.
+
+b. Data Transfer Pricing:
+ - Data transfer from the S3 bucket to the internet: Pricing varies based on the data transfer region and amount of data transferred. You can refer to the AWS S3 pricing page for detailed information.
+
+c. Requests Pricing:
+ - PUT, COPY, POST, or LIST requests: $0.005 per 1,000 requests.
+ - GET and all other requests: $0.0004 per 1,000 requests.
+
+d. Additional Features:
+ - Cross-Region Replication, Transfer Acceleration, and other optional features have their own associated costs. Refer to the AWS S3 pricing page for specific details.
+```
+
+# Step 5: Create a Route 53 public hosted zone
+
+1. Navigate to the **Route 53 service**
+2. In the Route 53 dashboard, click **Hosted zones** from the left pane
+3. Click on **Create hosted zone** and set the details as following:
+    a. **Domain name**: Provide your domain name without the **www**
+    b. Optional description
+    c. **Type** must be **Public hosted zone**
+    d. Optionally add a tag
+    e. Click **Create hosted zone**
+
+![Alt text](image-3.png)
+
+
+# Step 6: Create an A record into our hosted zone
+
+1. Click your newly created hosted zone
+2. Under the **Records** tab, click **Create record** and providing the following details:
+    a. **Record name**: type **www**
+    b. **Record type**: it's **A**
+    c. **Enable** the option **Route traffic to**
+    d. In the **Choose Endpoint** field, select **Alias to S3 website Endpoint**
+    e. Select your region: **us-east-1** in this case
+    f. Select your **S3 Endpoint** which will habe linked to your region and bucket name
+    f. Keep **Routing Policy** to **Simple routing** and **Evaluate target health** to **yes**
+    g. Click **Create records**
+
+![Alt text](image-4.png)
+
+# step 7: Update your Godaddy DNS NS records with the same NS records from your AWS Route 53 hosted zone
+
+![Alt text](image-8.png)
+
+
+1. Log into your Godaddy's account
+2. Go to **Profile name > My Products**
+3. Under **Domains**, click *your domain name* and choose **Manage DNS**
+
+![Alt text](image-6.png)
+
+4. Under **Nameservers**, click **Change Nameservers**
+5. On the new window, check **I'll use my own nameservers** instead of the Godaddy nameservers
+6. Copy and paste your nameservers from AWS and save
+
+![Alt text](image-7.png)
+
+7. Click **Continue** to confirme nameservers update
+
+![Alt text](image-9.png)
+
+
+You should now be able to access your static website using your Godaddy domain name www.conceptix-art.com
+
+![Alt text](image-10.png)
