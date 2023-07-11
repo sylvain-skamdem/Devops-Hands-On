@@ -1,4 +1,24 @@
-# STEP 1: Create S3 Bucket with your Godaddy domain name (set public access)
+## Table of content
+* Step 1: Create S3 Bucket with your Godaddy domain name (set public access)
+* Step 2: Enable static website hosting
+* Step 3: Upload your static website files into your bucket
+* Step 4: Add a bucket policy that makes your bucket content publicly available
+* Step 5: Create a Route 53 public hosted zone
+* Step 6: Create an A record into our hosted zone
+* step 7: Update your Godaddy DNS NS records with the same NS records from your AWS Route 53 hosted zone
+
+
+
+## Prerequisites
+1. A **domain name** purchased from Godaddy: *in my case I've purchased the domain conceptix-art.com*
+2. A **Static website content**: *In my case, I've downloaded a free html template from tooplate.com and started editing the html code*
+3. An AWS account to be able to create and configure S3 bucket, hosted zone, etc...
+
+![Alt text](<LOGO CONCEPTIX ART V 2.0.png>)
+
+
+
+# Step 1: Create S3 Bucket with your Godaddy domain name (set public access)
 
 1. Log in to the **AWS Management Console**: Go to the AWS Management Console (https://console.aws.amazon.com/) and log in to your AWS account.
 
