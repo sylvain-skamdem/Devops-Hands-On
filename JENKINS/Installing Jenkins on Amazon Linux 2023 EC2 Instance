@@ -106,77 +106,71 @@ To launch an EC2 instance:
 3. From the Amazon EC2 dashboard, select **Launch Instance**.
 <img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_launch_instance.png">
 
-The Choose an Amazon Machine Image (AMI) page displays a list of basic configurations called Amazon Machine Images (AMIs) that serve as templates for your instance. Select the HVM edition of the Amazon Linux AMI.
+4. The **Choose an Amazon Machine Image (AMI)** page displays a list of basic configurations called Amazon Machine Images (AMIs) that serve as templates for your instance. Select the HVM edition of the **Amazon Linux AMI**.
 
-This configuration is marked Free tier eligible.
-Choosing an Amazon Machine Image
-Scroll down and select the key pair you created in the creating a key pair section above or any existing key pair you intend to use.
+        This configuration is marked Free tier eligible.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_choose_ami.png">
 
-Select Select an existing security group.
 
-Select the WebServerSG security group that you created.
+5. Scroll down and select the key pair you created in the *creating a key pair* section above or any existing key pair you intend to use.
+ * Select **Select an existing security group**.
+ * Select the security group that you created.
+ * Select **Launch Instance**.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_review_instance_launch.png">
 
-Select Launch Instance.
+6. In the left-hand navigation bar, choose **Instances** to view the status of your instance. Initially, the status of your instance is pending. After the status changes to running, your instance is ready for use.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_view_created_instance.png">
 
-Review your Amazon launch instance
-In the left-hand navigation bar, choose Instances to view the status of your instance. Initially, the status of your instance is pending. After the status changes to running, your instance is ready for use.
-
-Amazon view created instance
-Installing and configuring Jenkins
+## Installing and configuring Jenkins
 Now that the Amazon EC2 instance has been launched, Jenkins can be installed properly.
 
 In this step you will deploy Jenkins on your EC2 instance by completing the following tasks:
+* Connecting to your Linux instance
+* Downloading and installing Jenkins
+* Configuring Jenkins
 
-Connecting to your Linux instance
-
-Downloading and installing Jenkins
-
-Configuring Jenkins
-
-Connecting to your Linux instance
+### Connecting to your Linux instance
 After you launch your instance, you can connect to it and use it the same way as your local machine.
 
-Before you connect to your instance, get the public DNS name of the instance using the Amazon EC2 console.
+Before you connect to your instance, get the **public DNS** name of the instance using the Amazon EC2 console.
 
-Select the instance and locate Public DNS.
+1. Select the instance and locate Public DNS.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_public_dns.png">
 
-Amazon public DNS
-If your instance doesn’t have a public DNS name, open the VPC console, select the VPC, and check the Summary tab. If either DNS resolution or DNS hostnames is no, select Edit and change the value to yes.
-Prerequisites
+        If your instance doesn’t have a public DNS name, open the VPC console, select the VPC, and check the Summary tab. If either DNS resolution or DNS hostnames is **no**, select **Edit** and change the value to **yes**.
+
+
+#### Prerequisites
 The tool that you use to connect to your Linux instance depends on your operating system.
-
-If your computer runs Windows, you will connect using PuTTY.
-
-If your computer runs Linux or Mac OS X, you will connect using the SSH client.
+* If your computer runs Windows, you will connect using PuTTY.
+* If your computer runs Linux or Mac OS X, you will connect using the SSH client.
 
 These tools require the use of your key pair. Be sure that you have created your key pair as described in Creating a key pair.
 
-Using PuTTY to connect to your instance
-From the Start menu, select All Programs > PuTTY > PuTTY.
+#### Using PuTTY to connect to your instance
+1. From the **Start** menu, select **All Programs > PuTTY > PuTTY**.
+2. In the **Category** pane, select **Session**, and complete the following fields:
+    a. In **Host Name**, enter *ec2-user@public_dns_name*.
+    b. Ensure that **Port** is *22*.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/ec2_putty.png">
 
-In the Category pane, select Session, and complete the following fields:
+3. In the **Category** pane, expand **Connection**, expand **SSH**, and then select **Auth**. Complete the following:
+    a. Select **Browse**.
+    b. Select the .ppk file that you generated for your key pair, as described in Creating a key pair and then select **Open**.
 
-In Host Name, enter ec2-user@public_dns_name.
+4. Select **Open** to start the PuTTY session.
+<img src="https://www.jenkins.io/doc/book/resources/tutorials/AWS/putty_select_key_pair.png">
 
-Ensure that Port is 22.
+#### Using SSH to connect to your instance
+1. Use the ssh command to connect to the instance. You will specify the private key (.pem) file and ec2-user@public_dns_name.
 
-Amazon EC2 PuTTY selection
-In the Category pane, expand Connection, expand SSH, and then select Auth. Complete the following:
-
-Select Browse.
-
-Select the .ppk file that you generated for your key pair, as described in Creating a key pair and then select Open.
-
-Select Open to start the PuTTY session.
-
-Selecting and opening a new PuTTY session
-Using SSH to connect to your instance
-Use the ssh command to connect to the instance. You will specify the private key (.pem) file and ec2-user@public_dns_name.
-
-$ ssh -i /path/my-key-pair.pem ec2-user@ec2-198-51-
+```bash
+ssh -i /path/my-key-pair.pem ec2-user@ec2-198-51-
 100-1.compute-1.amazonaws.com
+``` 
 You will receive a response like the following:
 
+```
 The authenticity of host 'ec2-198-51-100-1.compute1.amazonaws.com (10.254.142.33)' cant be
 established.
 
@@ -184,43 +178,73 @@ RSA key fingerprint is 1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:
 
 Are you sure you want to continue connecting
 (yes/no)?
-Enter yes.
+```
+2. Enter **yes**.
 
 You will receive a response like the following:
 
+```
 Warning: Permanently added 'ec2-198-51-100-1.compute1.amazonaws.com' (RSA) to the list of known hosts.
-Downloading and installing Jenkins
+```
+
+### Downloading and installing Jenkins
 Completing the previous steps enables you to download and install Jenkins on AWS. To download and install Jenkins:
 
-Ensure that your software packages are up to date on your instance by using the following command to perform a quick software update:
+1. Ensure that your software packages are up to date on your instance by using the following command to perform a quick software update:
 
-[ec2-user ~]$ sudo yum update –y
-Add the Jenkins repo using the following command:
+```bash
+sudo yum update –y
+```
+2. Add the Jenkins repo using the following command:
 
-[ec2-user ~]$ sudo wget -O /etc/yum.repos.d/jenkins.repo \
+```bash
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
     https://pkg.jenkins.io/redhat-stable/jenkins.repo
-Import a key file from Jenkins-CI to enable installation from the package:
+```
+3. Import a key file from Jenkins-CI to enable installation from the package:
 
-[ec2-user ~]$ sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-[ec2-user ~]$ sudo yum upgrade
-Install Java (Amazon Linux 2):
+```bash
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+```
+```bash
+sudo yum upgrade
+```
+4. Install Java (Amazon Linux 2):
 
-[ec2-user ~]$ sudo amazon-linux-extras install java-openjdk11 -y
-Install Java (Amazon Linux 2023):
+```bash
+sudo amazon-linux-extras install java-openjdk11 -y
+```
 
-[ec2-user ~]$ sudo dnf install java-11-amazon-corretto -y
-Install Jenkins:
+5. Or Install Java (Amazon Linux 2023):
 
-[ec2-user ~]$ sudo yum install jenkins -y
-Enable the Jenkins service to start at boot:
+```bash
+sudo dnf install java-11-amazon-corretto -y
+```
 
-[ec2-user ~]$ sudo systemctl enable jenkins
-Start Jenkins as a service:
+6. Install Jenkins:
 
-[ec2-user ~]$ sudo systemctl start jenkins
+```bash
+sudo yum install jenkins -y
+```
+
+7. Enable the Jenkins service to start at boot:
+
+```bash
+sudo systemctl enable jenkins
+```
+
+8. Start Jenkins as a service:
+
+```bash
+sudo systemctl start jenkins
+```
+
 You can check the status of the Jenkins service using the command:
 
-[ec2-user ~]$ sudo systemctl status jenkins
+```bash
+sudo systemctl status jenkins
+```
+
 Configuring Jenkins
 Jenkins is now installed and running on your EC2 instance. To configure Jenkins:
 
@@ -231,7 +255,7 @@ As prompted, enter the password found in /var/lib/jenkins/secrets/initialAdminPa
 
 Use the following command to display this password:
 
-[ec2-user ~]$ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 The Jenkins installation script directs you to the Customize Jenkins page. Click Install suggested plugins.
 
 Once the installation is complete, the Create First Admin User will open. Enter your information, and then select Save and Continue.
