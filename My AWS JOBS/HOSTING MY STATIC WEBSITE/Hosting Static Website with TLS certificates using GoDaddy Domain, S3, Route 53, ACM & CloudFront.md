@@ -1,3 +1,5 @@
+## Result: https://conceptix-art.com/
+
 ## Table of content
 * Step 1: Create S3 Bucket with your Godaddy domain name (set public access)
 * Step 2: Enable static website hosting
