@@ -6,7 +6,9 @@
 * Step 5: Create a Route 53 public hosted zone
 * Step 6: Create an A record into our hosted zone
 * step 7: Update your Godaddy DNS NS records with the same NS records from your AWS Route 53 hosted zone
-
+* Step 8: Request TLS certificate in ACM
+* Step 9: Set up my CloudFront distribution to define how website content will be delivered 
+* Step 10: Create a Route 53 A record as an alias for your CloudFront distribution
 
 
 ## Prerequisites
@@ -116,10 +118,15 @@ d. Additional Features:
 1. Navigate to the **Route 53 service**
 2. In the Route 53 dashboard, click **Hosted zones** from the left pane
 3. Click on **Create hosted zone** and set the details as following:
+    
     a. **Domain name**: Provide your domain name without the **www**
+
     b. Optional description
+
     c. **Type** must be **Public hosted zone**
+
     d. Optionally add a tag
+
     e. Click **Create hosted zone**
 
 ![Alt text](image-3.png)
@@ -128,15 +135,15 @@ d. Additional Features:
 # Step 6: Create an A record into our hosted zone
 
 1. Click your newly created hosted zone
-2. Under the **Records** tab, click **Create record** and providing the following details:
+2. Under the **Records** tab, click **Create record** and provide the following details:
     
     a. **Record name**: type **www**
     
     b. **Record type**: it's **A**
     
-    c. **Enable** the option **Route traffic to**
+    c. **Enable** the option **Alias** 
     
-    d. In the **Choose Endpoint** field, select **Alias to S3 website Endpoint**
+    d. Under **Route traffic to**, set your **Endpoint** as **Alias to S3 website Endpoint**
     
     e. Select your region: **us-east-1** in this case
     
@@ -173,3 +180,100 @@ d. Additional Features:
 You should now be able to access your static website using your Godaddy domain name www.conceptix-art.com
 
 ![Alt text](image-10.png)
+
+
+
+# Step 8: Request TLS certificate in ACM
+
+1. Navigate to the **AWS Certificate Manager** service
+2. In the ACM dashboard, click **Request a Certificate** and keep the following settings:
+    
+    a. **Certificate type** = **Request a public certificate**, then click **Next**
+
+    b. **Fully qualified domain name** = your domain names (*conceptix-art.com, www.conceptix-art.com & *.conceptix-art.com in my case*)
+
+    c. **Validation method** = **DNS validation**
+
+    d. **Key algorithm** = **RSA 2048**
+
+    e. Optionally add a tag
+    
+    f. Click **Request**
+
+    Click on **View Certificate**. The status of the certificate will be in **pending validation**.
+![Alt text](image-11.png)
+
+3. In your certificate, click on **Create records in Route 53** to add all your CNAME records to your Route 53 hosted zone, then click on **Create records*.
+![Alt text](image-12.png)
+
+The certificate status will change to **Issued**.
+
+# Step 9: Set up my CloudFront distribution to define how website content will be delivered
+
+1. Navigate to the **CloudFront** service
+2. In the Amazon CloudFront dashboard, click **Create a CloudFront distribution** and keep the following settings (for my case, I choosed to use these settings):
+    
+    a. **Origin domain** = **www.conceptix-art.com.s3-website-us-east-1.amazonaws.com**
+
+    b. **Protocol** = **HTTP Only**
+
+    c. **Enable origin shield** = **No**
+
+    d. **Compress objects automatically** = **Yes**
+
+    e. **Viewers protocol policy** = **Redirect HTTP to HTTPS**
+    
+    f. **Allowed HTTP methods** = **GET, HEAD**
+
+    g. **Restrict viewers access** = **No**
+
+    h. **Cache key and origin requests** = **Cache policy and origin request policy (recommended)**
+
+    i. **Price class** = **Use North America, Europe, Asia, Middle East, and Africa)
+
+    j. **Alternate domain name (CNAME) - optional** = **conceptix-art.com**
+
+    k. **Custom SSL certificate - optional** = *Select your certificate*; **Security policy** = *TLSv1.2_2021 (recommended)*
+
+    l. **Supported HTTP versions** = **HTTP/2**
+
+    m. **Default root object - optional** = **index.html**
+
+    n. **Standard logging** = **Off**
+
+    o. **IPv6** = **On**
+
+    p. **Web Application Firewall (WAF)** = **Do not enable security protections**.
+
+3. Click **Create distribution**
+
+# Step 10: Create a Route 53 A record as an alias for your CloudFront distribution
+
+1. Click your hosted zone in the Route 53 service dashboard
+2. Under the **Records** tab, click **Create record** and provide the following details:
+    
+    a. Nothing as **Record name**
+    
+    b. **Record type**: it's **A**
+    
+    c. **Enable** the option **Alias** 
+    
+    d. Under **Route traffic to**, set your **Endpoint** type as **Alias to CloudFront distribution**
+    
+    e. Select your region (it should be already set to your region): **us-east-1** in this case
+    
+    f. Select your alias value
+    
+    g. Keep **Routing Policy** to **Simple routing**
+    
+    h. Click **Create records**
+
+![Alt text](image-13.png)
+
+The status of the Route 53 hosted zone will then switch to **INSYNC**, meaning everything is working.
+
+As a result, your secure website is up and running:
+
+![Alt text](image-14.png)
+
+
