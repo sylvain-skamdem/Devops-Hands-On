@@ -1,5 +1,0 @@
-id_rsa*
-.terraform*
-terraform.*
-key.pem
-myKeypair
