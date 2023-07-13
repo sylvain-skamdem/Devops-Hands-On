@@ -1,19 +1,3 @@
-# Configure the version
-terraform {
-  required_version = "1.4.2"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~>4.0"
-    }
-  }
-}
-
-# Configure the provider
-provider "aws" {
-  region = "us-east-1"
-}
-
 # Main resources
 resource "aws_instance" "sk_instance" {
   ami           = "ami-069aabeee6f53e7bf"
