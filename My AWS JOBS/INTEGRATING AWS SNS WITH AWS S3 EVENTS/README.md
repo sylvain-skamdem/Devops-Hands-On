@@ -126,7 +126,7 @@ Replace the access policy attached to the topic with the following policy. In it
                     "Service": "s3.amazonaws.com"
                 },
                 "Action": [
-                    "SNS:Publish",
+                    "SNS:Publish"
                 ],
                 "Resource": "SNS-topic-ARN",
                 "Condition": {
