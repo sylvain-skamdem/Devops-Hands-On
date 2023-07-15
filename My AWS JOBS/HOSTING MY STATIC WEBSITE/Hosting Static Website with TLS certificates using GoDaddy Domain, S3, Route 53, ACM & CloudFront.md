@@ -1,5 +1,9 @@
 ## Result: https://conceptix-art.com/
 
+## Use Case Architecture
+![static website hosting using godaddy domain, aws s3, route 53, ACM and cloudfront](https://github.com/sylvainksimo/Devops-Hands-On/assets/79431567/f0743dc6-b4a2-4ba0-b8eb-1c86c1e93638)
+
+
 ## Table of content
 * Step 1: Create S3 Bucket with your Godaddy domain name (set public access)
 * Step 2: Enable static website hosting
