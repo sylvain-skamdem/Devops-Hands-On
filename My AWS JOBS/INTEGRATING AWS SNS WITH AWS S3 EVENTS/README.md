@@ -92,11 +92,11 @@ For this exercise, use email as the communications protocol.
     d. Choose **Create subscription**.
 
 
-![Alt text](image5.png)
+!<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image5.png?raw=true">
 
 5. Check your provided mailbox (inbox and spam folders) for a **subscription confirmation** email and click the link to confirm your subscription. Once you click the subscription link, you get this message:
 
-![Alt text](image7.png)
+!<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image7.png?raw=true">
 
 
 ## Step 4: Update the access policy of the topic
@@ -151,8 +151,8 @@ Replace the access policy attached to the topic with the following policy. In it
 
 ## Step 6: Test the setup
 1. Upload a csv file into the S3 bucket
-![Alt text](image6.png)
+!<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image6.png?raw=true">
 
 2. As soon as you upload the csv file, you receive the notification in your Google mailbox:
 
-![Alt text](image8.png)
+!<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image8.png?raw=true">
