@@ -21,14 +21,82 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
 
 7. *Review* and **Create**: Review the bucket configuration details on the "Review" page. Ensure that all settings are as desired. If everything looks good, click on the "**Create bucket**" button to create the S3 bucket.
 
-![Alt text](image.png)
+!<img src="sylvainksimo/Devops-Hands-On/My AWS JOBS/INTEGRATING AWS SNS WITH AWS S3 EVENTS/Images/image0.png">
 
 ## Step 2: Create a SNS topic
-1. Log in to the *AWS Management Console*: Go to the AWS Management Console website (https://console.aws.amazon.com/) and sign in using your AWS account credentials.
+1. Sign in to the Amazon SNS console https://console.aws.amazon.com/sns/home.
 
-2. Navigate to the **SNS Service**: Once you are logged in, search for "SNS" in the AWS services search bar or find it under the "Application Integration" category in the console dashboard. Click on "**SNS**" to access the SNS service.
+2. On the navigation panel, choose **Topics**.
 
-3. Create a new topic: In the SNS dashboard, click on **Topics** from left pane, then on the "**Create topic**" button to start the topic creation process.
+3. On the Topics page, choose **Create topic**.
+
+4. On the Create topic page, in the Details section, do the following:
+
+    a. For **Type**, choose a topic type (**Standard** or **FIFO**).
+
+    b. Enter a **Name** for the topic. For a FIFO topic, add .fifo to the end of the name.
+
+    c. (Optional) Enter a **Display name** for the topic.
+
+        Important
+        When subscribing to an email endpoint, the combined character count for the Amazon SNS topic display name and the sending email address (for example, no-reply@sns.amazonaws.com) must not exceed 320 UTF-8 characters. You can use a third party encoding tool to verify the length of the sending address before configuring a display name for your Amazon SNS topic.
+
+    d. (Optional) For a FIFO topic, you can choose content-based message deduplication to enable default message deduplication. For more information, see Message deduplication for FIFO topics.
+
+    e. (Optional) Expand the Encryption section and do the following. For more information, see Encryption at rest https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html.
+
+    - Choose **Enable encryption**.
+
+    - Specify the AWS KMS key. For more information, see Key terms.
+
+        For each KMS type, the Description, Account, and KMS ARN are displayed.
+
+        The AWS managed KMS for Amazon SNS (Default) alias/aws/sns is selected by default.
+
+        To use a custom KMS from your AWS account, choose the KMS key field and then choose the custom KMS from the list.
+
+        To use a custom KMS ARN from your AWS account or from another AWS account, enter it into the KMS key field.
+
+    f. (Optional) *By default, only the topic owner can publish or subscribe to the topic*. To configure additional access permissions, expand the Access policy section. For more information, see Identity and access management in Amazon SNS and Example cases for Amazon SNS access control.
+
+    g. (Optional) To configure how Amazon SNS retries failed message delivery attempts, expand the Delivery retry policy (HTTP/S) section. For more information, see Amazon SNS message delivery retries.
+
+    h. (Optional) To configure how Amazon SNS logs the delivery of messages to CloudWatch, expand the Delivery status logging section. For more information, see Amazon SNS message delivery status.
+
+    i. (Optional) To add metadata tags to the topic, expand the Tags section, enter a Key and a Value (optional) and choose Add tag. For more information, see Amazon SNS topic tagging.
+
+    j. Choose **Create topic**.
+
+    k. Copy the **topic ARN** to the clipboard, for example:
+
+*arn:aws:sns:us-east-2:123456789012:MyTopic*
+
+## Step 3: Subscribe to the topic
+For this exercise, use email as the communications protocol. 
+1. Sign in to the Amazon SNS console https://console.aws.amazon.com/sns/home.
+
+2. In the left navigation pane, choose **Subscriptions**.
+
+3. On the Subscriptions page, choose **Create subscription**.
+
+4. On the Create subscription page, in the Details section, do the following:
+
+    a. For **Topic ARN**, choose the Amazon Resource Name (ARN) of a topic.
+
+    b. For **Protocol**, choose an endpoint type. In this case, we choosed *Email*.
+
+    c. For **Endpoint**, enter the endpoint value. Here we entered our email address that will get the notification *sylvain.skamdem@gmail.com.* Keep the other options as default.
+
+    d. Choose **Create subscription**.
+
+![Alt text](image5.png)
+
+
+
+
+
+
+
 
 4. Provide Topic Details: In the "Create topic" page, you need to provide the details for your new SNS topic:
 
@@ -38,11 +106,38 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
     
     c. **Display name** (optional): You can optionally enter a display name for your topic to provide more descriptive information.
 
-    d. **Access policy** (optional): If you want to restrict or grant specific permissions to access the topic, you can specify an access policy using the JSON syntax. For now, just the topic owner can publish messages to the topic, so we'll change the publishers to everyone by checking "**Basic**" then changing **Publishers** and **Subscribers** to **Everyone**.
+    d. **Access policy** (optional): If you want to restrict or grant specific permissions to access the topic, you can specify an access policy using the JSON syntax. For now, just the topic owner can publish or subsribe messages to the topic, so we'll change the publishers and subscribers to everyone by checking "**Advanced**" then pasting the following json policy into the json editor (don't forget to update your sns topic ARN):
+    ```json
+    {
+        "Version": "2008-10-17",
+        "Id": "__default_policy_ID",
+        "Statement": [
+            {
+                "Sid": "__default_statement_ID",
+                "Effect": "Allow",
+                "Principal": {
+                    "AWS": "*"
+                },
+                "Action": [
+                    "SNS:GetTopicAttributes",
+                    "SNS:SetTopicAttributes",
+                    "SNS:AddPermission",
+                    "SNS:RemovePermission",
+                    "SNS:DeleteTopic",
+                    "SNS:Subscribe"
+                    "SNS:ListSubscriptionsByTopic",
+                    "SNS:Publish",
+                    "SNS:Receive",
+                ],
+                "Resource": "your-sns-topic-arn",
+            }
+        ]
+    }
+    ```
 
     e. Create the topic: Once you have provided the necessary details, click on the "**Create topic**" button to create the SNS topic.
-!<img src="">
-
+!
+![Alt text](image2.png)
 
 ## Step 3: Configure the events notifications for the S3 bucket
 
@@ -60,5 +155,5 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
     e. Select the **Destination**: Choose **SNS topic** in this case.
 
     f. Specify the SNS topic: Since we've already created our SNS topic, we'll select Choose from your SNS topics, then select the appropriate SNS topic
-
+3. Click on **Save changes**.
 
