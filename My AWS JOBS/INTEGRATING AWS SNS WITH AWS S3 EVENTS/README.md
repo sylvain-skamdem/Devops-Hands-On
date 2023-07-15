@@ -3,8 +3,19 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
 
 <img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/INT%20SNS%20AND%20S3.jpg?raw=true">
 
+## Table of Content
 
+- Step 1: Create the S3 bucket
 
+- Step 2: Create a SNS topic
+
+- Step 3: Subscribe to the topic
+
+- Step 4: Update the access policy of the topic
+
+- Step 5: Add a notification configuration to your S3 bucket
+
+- Step 6: Test the setup
 
 ## Step 1: Create the S3 bucket
 1. Log in to the *AWS Management Console*: Go to the AWS Management Console website (https://console.aws.amazon.com/) and sign in using your AWS account credentials.
