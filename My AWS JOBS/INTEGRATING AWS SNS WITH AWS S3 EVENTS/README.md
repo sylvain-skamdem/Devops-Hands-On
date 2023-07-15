@@ -21,7 +21,7 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
 
 7. *Review* and **Create**: Review the bucket configuration details on the "Review" page. Ensure that all settings are as desired. If everything looks good, click on the "**Create bucket**" button to create the S3 bucket.
 
-!<img src="sylvainksimo/Devops-Hands-On/My AWS JOBS/INTEGRATING AWS SNS WITH AWS S3 EVENTS/Images/image0.png">
+!<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image0.png?raw=true">
 
 ## Step 2: Create a SNS topic
 1. Sign in to the Amazon SNS console https://console.aws.amazon.com/sns/home.
@@ -71,6 +71,8 @@ We want to get a SNS notification to our gmail mailbox everytime a csv file is u
 
 *arn:aws:sns:us-east-2:123456789012:MyTopic*
 
+<img src="https://github.com/sylvainksimo/Devops-Hands-On/blob/main/My%20AWS%20JOBS/INTEGRATING%20AWS%20SNS%20WITH%20AWS%20S3%20EVENTS/Images/image2.png?raw=true">
+
 ## Step 3: Subscribe to the topic
 For this exercise, use email as the communications protocol. 
 1. Sign in to the Amazon SNS console https://console.aws.amazon.com/sns/home.
@@ -89,59 +91,49 @@ For this exercise, use email as the communications protocol.
 
     d. Choose **Create subscription**.
 
+
 ![Alt text](image5.png)
 
+5. Check your provided mailbox (inbox and spam folders) for a **subscription confirmation** email and click the link to confirm your subscription. Once you click the subscription link, you get this message:
+
+![Alt text](image7.png)
 
 
+## Step 4: Update the access policy of the topic
 
+Replace the access policy attached to the topic with the following policy. In it, provide your *SNS topic ARN, bucket name, and bucket owner's account ID*.
 
-
-
-
-4. Provide Topic Details: In the "Create topic" page, you need to provide the details for your new SNS topic:
-
-    a. Select the topic **Type**: In my case I choose **Standard**.
-    
-    b. **Topic name**: Enter a name for your topic. This name should be unique within your AWS account. In this case we enter *uct-s3-sns-topic*
-    
-    c. **Display name** (optional): You can optionally enter a display name for your topic to provide more descriptive information.
-
-    d. **Access policy** (optional): If you want to restrict or grant specific permissions to access the topic, you can specify an access policy using the JSON syntax. For now, just the topic owner can publish or subsribe messages to the topic, so we'll change the publishers and subscribers to everyone by checking "**Advanced**" then pasting the following json policy into the json editor (don't forget to update your sns topic ARN):
     ```json
     {
-        "Version": "2008-10-17",
-        "Id": "__default_policy_ID",
+        "Version": "2012-10-17",
+        "Id": "example-ID",
         "Statement": [
             {
-                "Sid": "__default_statement_ID",
+                "Sid": "Example SNS topic policy",
                 "Effect": "Allow",
                 "Principal": {
-                    "AWS": "*"
+                    "Service": "s3.amazonaws.com"
                 },
                 "Action": [
-                    "SNS:GetTopicAttributes",
-                    "SNS:SetTopicAttributes",
-                    "SNS:AddPermission",
-                    "SNS:RemovePermission",
-                    "SNS:DeleteTopic",
-                    "SNS:Subscribe"
-                    "SNS:ListSubscriptionsByTopic",
                     "SNS:Publish",
-                    "SNS:Receive",
                 ],
-                "Resource": "your-sns-topic-arn",
+                "Resource": "SNS-topic-ARN",
+                "Condition": {
+                    "ArnLike": {
+                        "aws:SourceArn": "arn:aws:s3:*:*:bucket-name"
+                    },
+                    "StringEquals": {
+                        "aws:SourceAccount": "bucket-owner-account-id"
+                    }
+                }
             }
         ]
-    }
+    }                
     ```
 
-    e. Create the topic: Once you have provided the necessary details, click on the "**Create topic**" button to create the SNS topic.
-!
-![Alt text](image2.png)
+## Step 5: Add a notification configuration to your S3 bucket
 
-## Step 3: Configure the events notifications for the S3 bucket
-
-1. In the newly created bucket, click the **Properties** tab
+1. In the created bucket, click the **Properties** tab
 2. Scroll down and click **Create event notification** to be notified when a specific event occurs.
 
     a. Set the **event name**: In this case *New-csv-file-put*.
@@ -157,3 +149,10 @@ For this exercise, use email as the communications protocol.
     f. Specify the SNS topic: Since we've already created our SNS topic, we'll select Choose from your SNS topics, then select the appropriate SNS topic
 3. Click on **Save changes**.
 
+## Step 6: Test the setup
+1. Upload a csv file into the S3 bucket
+![Alt text](image6.png)
+
+2. As soon as you upload the csv file, you receive the notification in your Google mailbox:
+
+![Alt text](image8.png)
