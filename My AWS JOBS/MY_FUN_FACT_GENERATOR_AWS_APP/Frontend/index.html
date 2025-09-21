@@ -1,0 +1,390 @@
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fun Fact Generator</title>
+  <meta name="description" content="Serverless Fun Fact Generator powered by AWS API Gateway + Lambda" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2300A3FF'/%3E%3Ctext x='50' y='58' font-size='48' text-anchor='middle' fill='white' font-family='Arial,Helvetica,sans-serif'%3E%3F%3C/text%3E%3C/svg%3E">
+  <!-- Tailwind via CDN (fine for a small static page). If you prefer, swap for your own CSS. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Subtle animations and utilities */
+    .card { transition: transform .2s ease, box-shadow .2s ease; }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+  <header class="border-b bg-white/70 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-blue-500 grid place-items-center text-white font-bold">F</div>
+        <div>
+          <h1 class="text-xl font-semibold">Fun Fact Generator</h1>
+          <p class="text-xs text-slate-500">AWS API Gateway + Lambda</p>
+        </div>
+      </div>
+
+      <!-- Config button -->
+      <button id="btnOpenConfig" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9.594 3.94c.09-.542.87-.542.96 0l.2 1.204a1.125 1.125 0 001.11.926h.272a1.125 1.125 0 001.11-.926l.2-1.204c.09-.542.87-.542.96 0l.2 1.204a1.125 1.125 0 001.11.926h.272a1.125 1.125 0 001.11-.926l.2-1.204c.09-.542.87-.542.96 0l.2 1.204a1.125 1.125 0 001.11.926H19.5M4.5 8.25h15M4.5 12h15m-15 3.75h15M4.5 19.5h15" />
+        </svg>
+        Config
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Hero -->
+    <section class="mb-8">
+      <div class="card rounded-2xl bg-white border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold mb-2">Get a fun fact</h2>
+        <p class="text-sm text-slate-600 mb-4">Click the button and we’ll fetch a fact from your API.</p>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="btnGenerate" class="rounded-xl px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            Generate Fun Fact
+          </button>
+          <button id="btnCopy" class="rounded-xl px-3 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50" disabled>Copy</button>
+          <button id="btnShare" class="rounded-xl px-3 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50" disabled>Share</button>
+          <span id="status" class="text-sm text-slate-500 hidden">
+            <svg class="inline w-4 h-4 mr-1 spin" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity=".2"/>
+              <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            Fetching…
+          </span>
+        </div>
+
+        <div class="mt-5">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4" id="outputWrap">
+            <pre id="output" class="whitespace-pre-wrap text-slate-800 text-base leading-relaxed">Click “Generate Fun Fact” to start.</pre>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">Tip: Press <kbd class="px-1 py-0.5 border rounded">g</kbd> to generate.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section>
+      <div class="card rounded-2xl bg-white border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-md font-semibold">History</h3>
+          <button id="btnClearHistory" class="rounded-lg px-3 py-1.5 text-xs border border-slate-200 bg-white hover:bg-slate-50">Clear</button>
+        </div>
+        <ul id="historyList" class="space-y-2 text-sm"></ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Config Modal -->
+  <div id="configModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-2xl bg-white p-6 border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="text-lg font-semibold">Configuration</h4>
+        <button id="btnCloseConfig" class="rounded-full p-2 hover:bg-slate-100" aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="apiUrl" class="block text-sm font-medium mb-1">API Gateway Invoke URL</label>
+          <input id="apiUrl" type="url" placeholder="https://xxxxxx.execute-api.us-east-1.amazonaws.com/prod/fact"
+                 class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <p class="text-xs text-slate-500 mt-1">Example: the full endpoint that returns JSON like <code>{ "fact": "..." }</code>.</p>
+        </div>
+
+        <div>
+          <label for="apiKey" class="block text-sm font-medium mb-1">API Key (optional)</label>
+          <input id="apiKey" type="text" placeholder="Only if your API requires it"
+                 class="w-full rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <p class="text-xs text-slate-500 mt-1">If using API Keys in API Gateway, this sets the <code>x-api-key</code> header.</p>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-slate-500">
+            These settings are stored locally in your browser (localStorage).
+          </div>
+          <div class="flex gap-2">
+            <button id="btnSaveConfig" class="rounded-xl px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700">Save</button>
+            <button id="btnResetConfig" class="rounded-xl px-3 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-8 text-center text-xs text-slate-500">
+    Built with ❤️ on AWS. Frontend is static (Amplify Hosting), backend is Lambda behind API Gateway.
+  </footer>
+
+  <script>
+    // ---------- Configuration ----------
+    const DEFAULTS = {
+      // You can hardcode your endpoint here if you want to avoid setting it in the UI:
+      // apiUrl: "https://xxxxxx.execute-api.us-east-1.amazonaws.com/prod/fact",
+      apiUrl: "https://hsmu2ja3w7.execute-api.us-east-1.amazonaws.com/funfact",
+      apiKey: ""
+    };
+
+    const LS_KEYS = {
+      apiUrl: "ffg_api_url",
+      apiKey: "ffg_api_key",
+      history: "ffg_history"
+    };
+
+    // ---------- DOM ----------
+    const outputEl = document.getElementById("output");
+    const statusEl = document.getElementById("status");
+    const btnGenerate = document.getElementById("btnGenerate");
+    const btnCopy = document.getElementById("btnCopy");
+    const btnShare = document.getElementById("btnShare");
+    const historyList = document.getElementById("historyList");
+    const btnClearHistory = document.getElementById("btnClearHistory");
+
+    const configModal = document.getElementById("configModal");
+    const btnOpenConfig = document.getElementById("btnOpenConfig");
+    const btnCloseConfig = document.getElementById("btnCloseConfig");
+    const btnSaveConfig = document.getElementById("btnSaveConfig");
+    const btnResetConfig = document.getElementById("btnResetConfig");
+    const apiUrlInput = document.getElementById("apiUrl");
+    const apiKeyInput = document.getElementById("apiKey");
+
+    // ---------- State ----------
+    const state = {
+      apiUrl: localStorage.getItem(LS_KEYS.apiUrl) || DEFAULTS.apiUrl,
+      apiKey: localStorage.getItem(LS_KEYS.apiKey) || DEFAULTS.apiKey,
+      history: JSON.parse(localStorage.getItem(LS_KEYS.history) || "[]"),
+    };
+
+    function saveConfig() {
+      localStorage.setItem(LS_KEYS.apiUrl, state.apiUrl);
+      localStorage.setItem(LS_KEYS.apiKey, state.apiKey);
+    }
+
+    function loadConfigToModal() {
+      apiUrlInput.value = state.apiUrl;
+      apiKeyInput.value = state.apiKey;
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!state.history.length) {
+        const li = document.createElement("li");
+        li.className = "text-slate-500";
+        li.textContent = "No facts yet. Generate a few!";
+        historyList.appendChild(li);
+        return;
+      }
+      state.history.slice().reverse().forEach((fact, idx) => {
+        const li = document.createElement("li");
+        li.className = "rounded-lg border border-slate-200 bg-white p-3 flex items-start gap-3";
+        li.innerHTML = `
+          <div class="flex-1">${escapeHTML(fact)}</div>
+          <div class="flex gap-2">
+            <button class="copyOne rounded-md px-2 py-1 text-xs border border-slate-200 hover:bg-slate-50">Copy</button>
+          </div>
+        `;
+        li.querySelector(".copyOne").addEventListener("click", async () => {
+          await copyToClipboard(fact);
+          toast("Copied!");
+        });
+        historyList.appendChild(li);
+      });
+    }
+
+    function toast(msg) {
+      const n = document.createElement("div");
+      n.textContent = msg;
+      n.className = "fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-1.5 rounded-lg shadow";
+      document.body.appendChild(n);
+      setTimeout(() => n.remove(), 1200);
+    }
+
+    function escapeHTML(s) {
+      return s.replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // Fallback
+        const el = document.createElement("textarea");
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        el.remove();
+      }
+    }
+
+    function setLoading(on) {
+      statusEl.classList.toggle("hidden", !on);
+      btnGenerate.disabled = on;
+    }
+
+    function enableActionButtons(enabled) {
+      btnCopy.disabled = !enabled;
+      btnShare.disabled = !enabled || !("share" in navigator);
+    }
+
+    function normalizeResponse(jsonOrString) {
+      // Your Lambda might return:
+      //  - { fact: "..." }
+      //  - { body: "{\"fact\":\"...\"}" } (proxy integration style)
+      //  - "raw string"
+      try {
+        if (typeof jsonOrString === "string") {
+          // maybe it's already the fact
+          return jsonOrString;
+        }
+        if (jsonOrString && typeof jsonOrString === "object") {
+          if (jsonOrString.fact) return jsonOrString.fact;
+          if (jsonOrString.body) {
+            const body = JSON.parse(jsonOrString.body);
+            if (body.fact) return body.fact;
+            return typeof body === "string" ? body : JSON.stringify(body);
+          }
+          // final fallback: stringify
+          return JSON.stringify(jsonOrString);
+        }
+        return String(jsonOrString);
+      } catch (e) {
+        return String(jsonOrString);
+      }
+    }
+
+    async function fetchFact() {
+      if (!state.apiUrl) {
+        openConfig();
+        toast("Set your API URL first.");
+        return;
+      }
+      setLoading(true);
+      enableActionButtons(false);
+      outputEl.textContent = "";
+
+      try {
+        const headers = { "Accept": "application/json" };
+        if (state.apiKey) headers["x-api-key"] = state.apiKey;
+
+        // Prefer GET; switch to POST if your API expects it (toggle below).
+        const method = "GET"; // or "POST"
+        const res = await fetch(state.apiUrl, {
+          method,
+          headers,
+          // ...(method === "POST" ? { body: JSON.stringify({ topic: "random" }) } : {})
+        });
+
+        const contentType = res.headers.get("content-type") || "";
+        let data;
+        if (contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          data = await res.text();
+        }
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${typeof data === "string" ? data : JSON.stringify(data)}`);
+        }
+
+        const fact = normalizeResponse(data);
+        outputEl.textContent = fact;
+        state.history.push(fact);
+        localStorage.setItem(LS_KEYS.history, JSON.stringify(state.history));
+        renderHistory();
+        enableActionButtons(true);
+      } catch (err) {
+        outputEl.textContent = `Error: ${err.message}\n\nCheck:\n• API URL\n• CORS on API Gateway\n• API key (if required)`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ---------- Modal handlers ----------
+    function openConfig() {
+      loadConfigToModal();
+      configModal.classList.remove("hidden");
+      configModal.classList.add("flex");
+      apiUrlInput.focus();
+    }
+    function closeConfig() {
+      configModal.classList.add("hidden");
+      configModal.classList.remove("flex");
+    }
+
+    btnOpenConfig.addEventListener("click", openConfig);
+    btnCloseConfig.addEventListener("click", closeConfig);
+    configModal.addEventListener("click", (e) => {
+      if (e.target === configModal) closeConfig();
+    });
+
+    btnSaveConfig.addEventListener("click", () => {
+      state.apiUrl = apiUrlInput.value.trim();
+      state.apiKey = apiKeyInput.value.trim();
+      saveConfig();
+      toast("Saved!");
+      closeConfig();
+    });
+
+    btnResetConfig.addEventListener("click", () => {
+      state.apiUrl = DEFAULTS.apiUrl || "";
+      state.apiKey = DEFAULTS.apiKey || "";
+      saveConfig();
+      loadConfigToModal();
+      toast("Reset to defaults.");
+    });
+
+    // ---------- Buttons ----------
+    btnGenerate.addEventListener("click", fetchFact);
+
+    btnCopy.addEventListener("click", async () => {
+      if (!outputEl.textContent) return;
+      await copyToClipboard(outputEl.textContent);
+      toast("Copied!");
+    });
+
+    btnShare.addEventListener("click", async () => {
+      if (!("share" in navigator)) return;
+      try {
+        await navigator.share({
+          title: "Fun Fact",
+          text: outputEl.textContent,
+          url: location.href
+        });
+      } catch {}
+    });
+
+    btnClearHistory.addEventListener("click", () => {
+      state.history = [];
+      localStorage.setItem(LS_KEYS.history, "[]");
+      renderHistory();
+    });
+
+    // Keyboard shortcut (g = generate)
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "g") {
+        e.preventDefault();
+        fetchFact();
+      }
+    });
+
+    // ---------- Init ----------
+    (function init() {
+      renderHistory();
+      // If you prefer a truly zero-click experience after first setup, uncomment:
+      // if (state.apiUrl) fetchFact();
+    })();
+  </script>
+</body>
+</html>
+```
