@@ -22,7 +22,7 @@
 2. A **Static website content**: *In my case, I've downloaded a free html template from tooplate.com and started editing the html code*
 3. An AWS account to be able to create and configure S3 bucket, hosted zone, etc...
 
-![Alt text](<LOGO CONCEPTIX ART V 2.0.png>)
+![Alt text](<img/LOGO CONCEPTIX V 4>)
 
 
 
