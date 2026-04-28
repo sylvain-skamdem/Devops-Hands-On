@@ -22,7 +22,7 @@
 2. A **Static website content**: *In my case, I've downloaded a free html template from tooplate.com and started editing the html code*
 3. An AWS account to be able to create and configure S3 bucket, hosted zone, etc...
 
-![Alt text](<img/LOGO CONCEPTIX V 4>)
+![Alt text](<img/LOGO.jpg>)
 
 
 
@@ -48,7 +48,7 @@
 
     f. Leave the other options as default and click on **Create bucket**.
 
-![Alt text](image.png)
+![Alt text](img/image.png)
 
 # Step 2: Enable static website hosting
 
@@ -59,7 +59,7 @@
 5. In the *Index document* field, specify your website home file name: Mine is **index.html**
 6. If you have one, you can specify your **error document** or your redirection rules (they're optional).
 
-![Alt text](image-1.png)
+![Alt text](img/image-1.png)
 
 # Step 3: Upload your static website files into your bucket
 
@@ -73,7 +73,7 @@ $ cd local-static-website-folder
 $ aws s3 sync . s3://www.conceptix-art.com
 ```
 
-![Alt text](image-2.png)
+![Alt text](img/image-2.png)
 
 # Step 4: Add a bucket policy that makes your bucket content publicly available
 
@@ -135,7 +135,7 @@ d. Additional Features:
 
     e. Click **Create hosted zone**
 
-![Alt text](image-3.png)
+![Alt text](img/image-3.png)
 
 
 # Step 6: Create an A record into our hosted zone
@@ -159,33 +159,32 @@ d. Additional Features:
     
     h. Click **Create records**
 
-![Alt text](image-4.png)
+![Alt text](img/image-4.png)
 
 # step 7: Update your Godaddy DNS NS records with the same NS records from your AWS Route 53 hosted zone
 
-![Alt text](image-8.png)
+![Alt text](img/image-8.png)
 
 
 1. Log into your Godaddy's account
 2. Go to **Profile name > My Products**
 3. Under **Domains**, click *your domain name* and choose **Manage DNS**
 
-![Alt text](image-6.png)
+![Alt text](img/image-6.png)
 
 4. Under **Nameservers**, click **Change Nameservers**
 5. On the new window, check **I'll use my own nameservers** instead of the Godaddy nameservers
 6. Copy and paste your nameservers from AWS and save
 
-![Alt text](image-7.png)
+![Alt text](img/image-7.png)
 
 7. Click **Continue** to confirme nameservers update
 
-![Alt text](image-9.png)
+![Alt text](img/image-9.png)
 
 
 You should now be able to access your static website using your Godaddy domain name www.conceptix-art.com
 
-![Alt text](image-10.png)
 
 
 
@@ -207,10 +206,10 @@ You should now be able to access your static website using your Godaddy domain n
     f. Click **Request**
 
     Click on **View Certificate**. The status of the certificate will be in **pending validation**.
-![Alt text](image-11.png)
+![Alt text](img/image-11.png)
 
 3. In your certificate, click on **Create records in Route 53** to add all your CNAME records to your Route 53 hosted zone, then click on **Create records*.
-![Alt text](image-12.png)
+![Alt text](img/image-12.png)
 
 The certificate status will change to **Issued**.
 
@@ -274,12 +273,12 @@ The certificate status will change to **Issued**.
     
     h. Click **Create records**
 
-![Alt text](image-13.png)
+![Alt text](img/image-13.png)
 
 The status of the Route 53 hosted zone will then switch to **INSYNC**, meaning everything is working.
 
 As a result, your secure website is up and running:
 
-![Alt text](image-14.png)
+![Alt text](img/image-14.png)
 
 
