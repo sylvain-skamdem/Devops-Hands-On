@@ -1,0 +1,37 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "EC2 Windows Server instance with RDP access",
+  "Parameters": {
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Name of an existing EC2 key pair"
+    }
+  },
+  "Resources": {
+    "WindowsSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow RDP",
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp", "FromPort": 3389, "ToPort": 3389,
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "WindowsInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t3.small",
+        "ImageId": "ami-09639480113b0df96",
+        "KeyName": { "Ref": "KeyName" },
+        "SecurityGroups": [{ "Ref": "WindowsSG" }]
+      }
+    }
+  },
+  "Outputs": {
+    "InstancePublicIP": {
+      "Value": { "Fn::GetAtt": ["WindowsInstance", "PublicIp"] },
+      "Description": "Public IP of the Windows instance"
+    }
+  }
+}

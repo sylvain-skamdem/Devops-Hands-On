@@ -1,0 +1,63 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Reusable Ubuntu Apache web server — all values supplied as parameters",
+
+  "Parameters": {
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t3.micro",
+      "AllowedValues": ["t2.micro", "t3.micro", "t3.small"],
+      "Description": "EC2 instance size"
+    },
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Existing EC2 key pair for SSH access"
+    },
+    "WebPageContent": {
+      "Type": "String",
+      "Default": "Hello from CloudFormation! Im Sim’s.",
+      "Description": "Text displayed on the web page"
+    }
+  },
+
+  "Resources": {
+    "UbuntuSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow HTTP and SSH",
+        "SecurityGroupIngress": [
+          { "IpProtocol":"tcp","FromPort":80,"ToPort":80,"CidrIp":"0.0.0.0/0" },
+          { "IpProtocol":"tcp","FromPort":22,"ToPort":22,"CidrIp":"0.0.0.0/0" }
+        ]
+      }
+    },
+    "UbuntuInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": { "Ref": "InstanceType" },
+        "ImageId": "ami-0c02fb55956c7d316",
+        "KeyName": { "Ref": "KeyName" },
+        "SecurityGroups": [{ "Ref": "UbuntuSG" }],
+        "UserData": {
+          "Fn::Base64": { "Fn::Join": ["", [
+            "#!/bin/bash\n",
+            "yum update -y\n",
+            "yum install -y httpd\n",
+            "systemctl start httpd\n",
+            "systemctl enable httpd\n",
+            "echo '<html><body><h1>", { "Ref": "WebPageContent" }, "</h1></body></html>'",
+            " > /var/www/html/index.html\n"
+          ]]}
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+    "WebsiteURL": {
+      "Value": { "Fn::Join": ["", ["http://",
+        { "Fn::GetAtt": ["UbuntuInstance","PublicDnsName"] }]] },
+      "Description": "URL of the web application"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Reusable Windows IIS web server — all values supplied as parameters",
+
+  "Parameters": {
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t3.small",
+      "AllowedValues": ["t3.small", "t3.medium"],
+      "Description": "EC2 instance size (Windows needs at least t3.small)"
+    },
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Existing EC2 key pair (used to decrypt Windows password)"
+    },
+    "WebPageContent": {
+      "Type": "String",
+      "Default": "Hello from CloudFormation!I a Sims.",
+      "Description": "Text displayed on the IIS web page"
+    }
+  },
+
+  "Resources": {
+    "WindowsSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow HTTP",
+        "SecurityGroupIngress": [
+          { "IpProtocol":"tcp","FromPort":80,"ToPort":80,"CidrIp":"0.0.0.0/0" }
+        ]
+      }
+    },
+    "WindowsInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": { "Ref": "InstanceType" },
+        "ImageId": "ami-09639480113b0df96",
+        "KeyName": { "Ref": "KeyName" },
+        "SecurityGroups": [{ "Ref": "WindowsSG" }],
+        "UserData": {
+          "Fn::Base64": { "Fn::Join": ["", [
+            "<powershell>\nInstall-WindowsFeature -Name Web-Server -IncludeManagementTools\n",
+            "$content = '<html><body><h1>", { "Ref": "WebPageContent" }, "</h1></body></html>'\n",
+            "Set-Content -Path C:\\inetpub\\wwwroot\\iisstart.htm -Value $content\n",
+            "</powershell>"
+          ]]}
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+    "WebsiteURL": {
+      "Value": { "Fn::Join": ["", ["http://",
+        { "Fn::GetAtt": ["WindowsInstance","PublicDnsName"] }]] },
+      "Description": "URL of the IIS web application"
+    }
+  }
+}

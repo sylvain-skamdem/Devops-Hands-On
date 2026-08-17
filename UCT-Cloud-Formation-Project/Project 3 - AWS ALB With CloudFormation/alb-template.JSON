@@ -1,0 +1,262 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "ALB with 3 Ubuntu EC2 Instances — UCT Lab",
+
+  "Parameters": {
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "EC2 key pair for SSH access to the web servers"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t3.micro",
+      "AllowedValues": ["t2.micro", "t3.micro", "t3.small"],
+      "Description": "EC2 instance size for all three web servers"
+    },
+    "UbuntuAmi": {
+      "Type": "String",
+      "Default": "ami-0c7217cdde317cfec",
+      "Description": "Ubuntu 22.04 LTS AMI ID for us-east-1"
+    }
+  },
+  "Resources": {
+
+      "LabVPC": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock": "10.0.0.0/16",
+          "EnableDnsHostnames": true,
+          "EnableDnsSupport": true,
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-vpc" }]
+        }
+      },
+
+      "InternetGateway": {
+        "Type": "AWS::EC2::InternetGateway",
+        "Properties": {
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-igw" }]
+        }
+      },
+
+      "VPCGatewayAttachment": {
+        "Type": "AWS::EC2::VPCGatewayAttachment",
+        "Properties": {
+          "VpcId": { "Ref": "LabVPC" },
+          "InternetGatewayId": { "Ref": "InternetGateway" }
+        }
+      },
+
+      "PublicSubnetA": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "VpcId": { "Ref": "LabVPC" },
+          "CidrBlock": "10.0.1.0/24",
+          "AvailabilityZone": "us-east-1a",
+          "MapPublicIpOnLaunch": true,
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-subnet-a" }]
+        }
+      },
+
+      "PublicSubnetB": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "VpcId": { "Ref": "LabVPC" },
+          "CidrBlock": "10.0.2.0/24",
+          "AvailabilityZone": "us-east-1b",
+          "MapPublicIpOnLaunch": true,
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-subnet-b" }]
+        }
+      },
+
+      "PublicRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "LabVPC" },
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-rt" }]
+        }
+      },
+
+      "DefaultRoute": {
+        "Type": "AWS::EC2::Route",
+        "DependsOn": "VPCGatewayAttachment",
+        "Properties": {
+          "RouteTableId": { "Ref": "PublicRouteTable" },
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "InternetGateway" }
+        }
+      },
+
+      "SubnetARouteAssoc": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "PublicSubnetA" },
+          "RouteTableId": { "Ref": "PublicRouteTable" }
+        }
+      },
+
+      "SubnetBRouteAssoc": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "PublicSubnetB" },
+          "RouteTableId": { "Ref": "PublicRouteTable" }
+        }
+      },
+
+      "ALBSecurityGroup": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Allow HTTP from internet to ALB",
+          "VpcId": { "Ref": "LabVPC" },
+          "SecurityGroupIngress": [{
+            "IpProtocol": "tcp", "FromPort": 80, "ToPort": 80,
+            "CidrIp": "0.0.0.0/0"
+          }],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-alb-sg" }]
+        }
+      },
+
+      "EC2SecurityGroup": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Allow HTTP from ALB SG only; SSH from anywhere",
+          "VpcId": { "Ref": "LabVPC" },
+          "SecurityGroupIngress": [
+            {
+              "IpProtocol": "tcp", "FromPort": 80, "ToPort": 80,
+              "SourceSecurityGroupId": { "Ref": "ALBSecurityGroup" }
+            },
+            {
+              "IpProtocol": "tcp", "FromPort": 22, "ToPort": 22,
+              "CidrIp": "0.0.0.0/0"
+            }
+          ],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-ec2-sg" }]
+        }
+      },
+
+  "WebServer1": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "ImageId": { "Ref": "UbuntuAmi" },
+          "InstanceType": { "Ref": "InstanceType" },
+          "KeyName": { "Ref": "KeyName" },
+          "SubnetId": { "Ref": "PublicSubnetA" },
+          "SecurityGroupIds": [{ "Ref": "EC2SecurityGroup" }],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-server-1" }],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Sub": "#!/bin/bash\napt-get update -y\napt-get install -y apache2\nsystemctl start apache2\nsystemctl enable apache2\necho '<html><body style=\"font-family:Arial;padding:40px;\"><h1>Hello from Server 1</h1><p>AZ: us-east-1a</p><p>Host: $(hostname)</p></body></html>' > /var/www/html/index.html\n"
+            }
+          }
+        }
+      },
+
+      "WebServer2": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "ImageId": { "Ref": "UbuntuAmi" },
+          "InstanceType": { "Ref": "InstanceType" },
+          "KeyName": { "Ref": "KeyName" },
+          "SubnetId": { "Ref": "PublicSubnetB" },
+          "SecurityGroupIds": [{ "Ref": "EC2SecurityGroup" }],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-server-2" }],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Sub": "#!/bin/bash\napt-get update -y\napt-get install -y apache2\nsystemctl start apache2\nsystemctl enable apache2\necho '<html><body style=\"font-family:Arial;padding:40px;\"><h1>Hello from Server 2</h1><p>AZ: us-east-1b</p><p>Host: $(hostname)</p></body></html>' > /var/www/html/index.html\n"
+            }
+          }
+        }
+      },
+
+      "WebServer3": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "ImageId": { "Ref": "UbuntuAmi" },
+          "InstanceType": { "Ref": "InstanceType" },
+          "KeyName": { "Ref": "KeyName" },
+          "SubnetId": { "Ref": "PublicSubnetB" },
+          "SecurityGroupIds": [{ "Ref": "EC2SecurityGroup" }],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-server-3" }],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Sub": "#!/bin/bash\napt-get update -y\napt-get install -y apache2\nsystemctl start apache2\nsystemctl enable apache2\necho '<html><body style=\"font-family:Arial;padding:40px;\"><h1>Hello from Server 3</h1><p>AZ: us-east-1b (backup)</p><p>Host: $(hostname)</p></body></html>' > /var/www/html/index.html\n"
+            }
+          }
+        }
+      },
+
+      "WebTargetGroup": {
+        "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+        "Properties": {
+          "Name": "alb-lab-tg",
+          "Port": 80,
+          "Protocol": "HTTP",
+          "VpcId": { "Ref": "LabVPC" },
+          "TargetType": "instance",
+          "HealthCheckPath": "/",
+          "HealthCheckProtocol": "HTTP",
+          "HealthCheckIntervalSeconds": 30,
+          "HealthCheckTimeoutSeconds": 5,
+          "HealthyThresholdCount": 2,
+          "UnhealthyThresholdCount": 2,
+          "Matcher": { "HttpCode": "200" },
+          "Targets": [
+            { "Id": { "Ref": "WebServer1" }, "Port": 80 },
+            { "Id": { "Ref": "WebServer2" }, "Port": 80 },
+            { "Id": { "Ref": "WebServer3" }, "Port": 80 }
+          ],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-tg" }]
+        }
+      },
+
+      "ALBResource": {
+        "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+        "Properties": {
+          "Name": "alb-lab-alb",
+          "Scheme": "internet-facing",
+          "Type": "application",
+          "SecurityGroups": [{ "Ref": "ALBSecurityGroup" }],
+          "Subnets": [
+            { "Ref": "PublicSubnetA" },
+            { "Ref": "PublicSubnetB" }
+          ],
+          "Tags": [{ "Key": "Name", "Value": "alb-lab-alb" }]
+        }
+      },
+
+      "ALBListener": {
+        "Type": "AWS::ElasticLoadBalancingV2::Listener",
+        "Properties": {
+          "LoadBalancerArn": { "Ref": "ALBResource" },
+          "Port": 80,
+          "Protocol": "HTTP",
+          "DefaultActions": [{
+            "Type": "forward",
+            "TargetGroupArn": { "Ref": "WebTargetGroup" }
+          }]
+        }
+      }
+
+    },
+
+  "Outputs": {
+      "ALBWebsiteURL": {
+        "Description": "Open this URL in a browser to verify load balancing",
+        "Value": {
+          "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["ALBResource", "DNSName"] }]]
+        }
+      },
+      "WebServer1IP": {
+        "Description": "Public IP of Server 1",
+        "Value": { "Fn::GetAtt": ["WebServer1", "PublicIp"] }
+      },
+      "WebServer2IP": {
+        "Description": "Public IP of Server 2",
+        "Value": { "Fn::GetAtt": ["WebServer2", "PublicIp"] }
+      },
+      "WebServer3IP": {
+        "Description": "Public IP of Server 3",
+        "Value": { "Fn::GetAtt": ["WebServer3", "PublicIp"] }
+      }
+    }
+  }

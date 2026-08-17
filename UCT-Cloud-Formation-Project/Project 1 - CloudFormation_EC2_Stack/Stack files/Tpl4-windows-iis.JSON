@@ -1,0 +1,33 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Windows Server EC2 with IIS installed via UserData",
+  "Resources": {
+    "WinWebSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow HTTP",
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp", "FromPort": 80, "ToPort": 80,
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "WinWebServer": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t3.small",
+        "ImageId": "ami-09639480113b0df96",
+        "SecurityGroups": [{ "Ref": "WinWebSG" }],
+        "UserData": {
+          "Fn::Base64": "<powershell>\nInstall-WindowsFeature -Name Web-Server -IncludeManagementTools\n$html = '<h1>UCT CloudFormation IIS Lab by SIMS</h1>'\nSet-Content -Path C:\\inetpub\\wwwroot\\iisstart.htm -Value $html\n</powershell>"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "WebsiteURL": {
+      "Value": { "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["WinWebServer", "PublicDnsName"] }]] },
+      "Description": "URL of the IIS web server"
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Ubuntu Web Server with Apache, custom HTML, SG, and Name tag",
+
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "SubnetId": {
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "CustomHtml": {
+      "Type": "String"
+    },
+    "InstanceName": {
+      "Type": "String"
+    },
+    "SelectedRegion": {
+      "Type": "String",
+      "Description": "Choose the AWS Region",
+      "AllowedValues": [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+      ]
+    },
+    "AvailabilityZone": {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "Description": "Choose the Availability Zone"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Description": "Choose the EC2 instance type",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro",
+        "t3.micro",
+        "t3.small"
+      ]
+    }
+  },
+
+  "Mappings": {
+    "RegionMap": {
+      "us-east-1": { "AMI": "ami-0fc5d935ebf8bc3bc" },
+      "us-east-2": { "AMI": "ami-0f2b4fc905b0bd1f1" },
+      "us-west-1": { "AMI": "ami-0c1bc246476a557bb" },
+      "us-west-2": { "AMI": "ami-0c2b8ca1dad447f8a" }
+    }
+  },
+
+  "Resources": {
+    "WebSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enable SSH and HTTP access",
+        "VpcId": { "Ref": "VpcId" },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
+    "UbuntuServer": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": { "Fn::FindInMap": ["RegionMap", { "Ref": "SelectedRegion" }, "AMI"] },
+        "InstanceType": { "Ref": "InstanceType" },
+        "KeyName": { "Ref": "KeyName" },
+        "SubnetId": { "Ref": "SubnetId" },
+        "SecurityGroupIds": [
+          { "Ref": "WebSecurityGroup" }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Ref": "InstanceName" }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Sub": "#!/bin/bash\napt update -y\napt install -y apache2\ncat <<EOF > /var/www/html/index.html\n${CustomHtml}\nEOF\nsystemctl restart apache2\n"
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+    "PublicIP": {
+      "Value": { "Fn::GetAtt": ["UbuntuServer", "PublicIp"] }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "EC2 Linux instance with SSH access",
+  "Parameters": {
+    "KeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description": "Name of an existing EC2 key pair"
+    }
+  },
+  "Resources": {
+    "LinuxSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow SSH",
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp", "FromPort": 22, "ToPort": 22,
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "LinuxInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t3.micro",
+        "ImageId": "ami-0c02fb55956c7d316",
+        "KeyName": { "Ref": "KeyName" },
+        "SecurityGroups": [{ "Ref": "LinuxSG" }]
+      }
+    }
+  },
+  "Outputs": {
+    "InstancePublicIP": {
+      "Value": { "Fn::GetAtt": ["LinuxInstance", "PublicIp"] },
+      "Description": "Public IP of the Linux instance"
+    }
+  }
+}

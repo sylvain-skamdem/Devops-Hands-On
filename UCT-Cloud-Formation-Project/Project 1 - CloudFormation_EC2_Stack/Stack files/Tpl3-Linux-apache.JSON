@@ -1,0 +1,42 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Linux EC2 with Apache installed via UserData",
+  "Resources": {
+    "WebSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow HTTP",
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp", "FromPort": 80, "ToPort": 80,
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "WebServer": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t3.micro",
+        "ImageId": "ami-0c02fb55956c7d316",
+        "SecurityGroups": [{ "Ref": "WebSG" }],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": ["", [
+              "#!/bin/bash\n",
+              "yum update -y\n",
+              "yum install -y httpd\n",
+              "systemctl start httpd\n",
+              "systemctl enable httpd\n",
+              "echo '<h1>UCT CloudFormation Apache Lab by SIMS</h1>' > /var/www/html/index.html\n"
+            ]]
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "WebsiteURL": {
+      "Value": { "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["WebServer", "PublicDnsName"] }]] },
+      "Description": "URL of the Apache web server"
+    }
+  }
+}

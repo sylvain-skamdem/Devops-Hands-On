@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Application 1</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    text-align:center;
+    margin-top:100px;
+    background-color:#e8f4fd;
+}
+.container{
+    width:60%;
+    margin:auto;
+    padding:30px;
+    background:white;
+    border-radius:10px;
+    box-shadow:0px 0px 10px gray;
+}
+h1{
+    color:#0078d7;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome to Application 1</h1>
+    <h2>Path Accessed: /app1</h2>
+    <p>This request was routed by AWS ALB using Path-Based Routing.</p>
+    <p><strong>Target Group:</strong> TG-App1</p>
+</div>
+
+</body>
+</html>
