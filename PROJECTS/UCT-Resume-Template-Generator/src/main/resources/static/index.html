@@ -1,0 +1,560 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resume Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #333; }
+
+    header { background: #1a1a2e; color: #fff; padding: 18px 32px; font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+
+    .container { display: flex; gap: 32px; padding: 32px; max-width: 1300px; margin: 0 auto; }
+
+    /* FORM */
+    .form-panel {
+      flex: 1; background: #fff; border-radius: 10px; padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      max-height: calc(100vh - 100px); overflow-y: auto;
+    }
+    .form-panel h2 { margin-bottom: 20px; color: #1a1a2e; font-size: 1.1rem; }
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: #555; }
+    input, textarea, select {
+      width: 100%; padding: 9px 12px; border: 1px solid #d0d5dd;
+      border-radius: 6px; font-size: 0.9rem; outline: none; transition: border 0.2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #4f6ef7; }
+    textarea { resize: vertical; min-height: 72px; }
+    .hint { font-size: 0.76rem; color: #888; margin-top: 3px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px; }
+    .section-header span { font-size: 0.82rem; font-weight: 700; color: #1a1a2e; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-add {
+      padding: 5px 12px; background: #eef0ff; color: #4f6ef7;
+      border: 1px solid #c5cbff; border-radius: 6px; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer; width: auto;
+    }
+    .btn-add:hover { background: #dde0ff; }
+
+    .dynamic-row {
+      background: #f9fafb; border: 1px solid #e8ecf0; border-radius: 8px;
+      padding: 12px 12px 4px; margin-bottom: 10px; position: relative;
+    }
+    .row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-remove {
+      position: absolute; top: 8px; right: 8px; background: none; border: none;
+      color: #bbb; font-size: 1.1rem; cursor: pointer; width: auto; padding: 0 4px; line-height: 1;
+    }
+    .btn-remove:hover { color: #d32f2f; }
+
+    .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+
+    .btn-generate {
+      width: 100%; padding: 11px; background: #4f6ef7; color: #fff;
+      border: none; border-radius: 6px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+    }
+    .btn-generate:hover { background: #3a57d4; }
+    #error { color: #d32f2f; margin-top: 12px; font-size: 0.88rem; display: none; }
+
+    /* PREVIEW */
+    .preview-panel {
+      flex: 1.2; background: #fff; border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden; display: flex; flex-direction: column;
+      max-height: calc(100vh - 100px);
+    }
+    .preview-placeholder {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      color: #bbb; font-size: 1rem; padding: 40px; text-align: center;
+    }
+    .resume { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+
+    .resume-header { background: #1a1a2e; color: #fff; padding: 28px 32px; flex-shrink: 0; }
+    .resume-header h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 4px; }
+    .resume-header .rtitle { font-size: 1rem; color: #a8b4f8; margin-bottom: 12px; }
+    .resume-header .meta { display: flex; flex-wrap: wrap; gap: 18px; font-size: 0.82rem; color: #ccd3ff; }
+
+    .resume-body { padding: 28px 32px; flex: 1; }
+
+    .rsection { margin-bottom: 24px; }
+    .rsection-title {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #4f6ef7; margin-bottom: 10px;
+      padding-bottom: 5px; border-bottom: 2px solid #e8ecff;
+    }
+    .rsection p { font-size: 0.9rem; line-height: 1.6; color: #444; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { background: #eef0ff; color: #4f6ef7; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+    .hobby-tag { background: #f0fdf4; color: #16a34a; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+
+    .highlights li {
+      font-size: 0.9rem; line-height: 1.6; color: #444;
+      padding: 3px 0; list-style: none; display: flex; gap: 8px; align-items: flex-start;
+    }
+    .highlights li i { color: #4f6ef7; margin-top: 3px; flex-shrink: 0; font-size: 0.75rem; }
+
+    /* Timeline */
+    .timeline { display: flex; flex-direction: column; gap: 16px; }
+    .timeline-item { display: flex; gap: 14px; }
+    .tl-line { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; padding-top: 4px; }
+    .tl-dot { width: 10px; height: 10px; background: #4f6ef7; border-radius: 50%; flex-shrink: 0; }
+    .tl-bar { flex: 1; width: 2px; background: #e8ecff; margin-top: 4px; }
+    .tl-content { flex: 1; padding-bottom: 4px; }
+    .tl-role { font-weight: 700; font-size: 0.92rem; color: #1a1a2e; }
+    .tl-org { font-size: 0.86rem; color: #4f6ef7; font-weight: 600; }
+    .tl-dates { font-size: 0.78rem; color: #888; margin-top: 2px; }
+
+    /* Certifications */
+    .cert-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cert-card { background: #fff8ec; border: 1px solid #fed7aa; border-radius: 8px; padding: 8px 14px; }
+    .cert-name { font-size: 0.88rem; font-weight: 700; color: #92400e; }
+    .cert-provider { font-size: 0.78rem; color: #b45309; margin-top: 2px; }
+    .cert-dates { font-size: 0.75rem; color: #b45309; margin-top: 3px; opacity: 0.8; }
+
+    /* Download toolbar */
+    .download-bar { display: none; padding: 8px 16px; background: #f0f4ff; border-bottom: 1px solid #dde2ff; gap: 8px; flex-shrink: 0; align-items: center; }
+    .download-bar span { font-size: 0.78rem; color: #555; font-weight: 600; flex: 1; }
+    .btn-dl {
+      padding: 5px 14px; border: none; border-radius: 6px; font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-dl-html  { background: #eef0ff; color: #4f6ef7; }
+    .btn-dl-pdf   { background: #fee2e2; color: #dc2626; }
+    .btn-dl-word  { background: #dbeafe; color: #1d4ed8; }
+    .btn-dl:hover { filter: brightness(0.93); }
+
+    .resume-footer { padding: 10px 32px; background: #f9fafb; font-size: 0.72rem; color: #aaa; text-align: right; border-top: 1px solid #eee; flex-shrink: 0; }
+
+    @media (max-width: 900px) {
+      .container { flex-direction: column; padding: 16px; }
+      .form-panel, .preview-panel { max-height: none; }
+      .row-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page { margin: 0; }
+      body { margin: 1cm; }
+      body > header, .form-panel, .download-bar, .resume-footer { display: none !important; }
+      .container { display: block; padding: 0; }
+      .preview-panel { box-shadow: none; max-height: none; border-radius: 0; }
+      .resume { display: flex !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header><i class="fas fa-file-alt"></i> Resume Generator</header>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div class="form-panel">
+    <h2>Enter Candidate Details</h2>
+
+    <div class="field"><label>Full Name *</label><input id="fullName" type="text" placeholder="e.g. Alex Johnson"/></div>
+    <div class="field"><label>Professional Title *</label><input id="professionalTitle" type="text" placeholder="e.g. Senior Java Engineer"/></div>
+    <div class="field"><label>Summary *</label><textarea id="summary" placeholder="Brief professional summary..."></textarea></div>
+    <div class="field">
+      <label>Skills *</label>
+      <input id="skills" type="text" placeholder="Java, Spring Boot, Docker"/>
+      <div class="hint">Comma-separated</div>
+    </div>
+    <div class="field"><label>Location</label><input id="location" type="text" placeholder="e.g. Austin, TX"/></div>
+    <div class="field"><label>Phone Number</label><input id="phoneNumber" type="text" placeholder="e.g. +1 (512) 555-0100"/></div>
+    <div class="field">
+      <label>Hobbies &amp; Interests</label>
+      <input id="hobbies" type="text" placeholder="Reading, Hiking, Photography"/>
+      <div class="hint">Comma-separated</div>
+    </div>
+    <div class="field">
+      <label>Template</label>
+      <select id="template">
+        <option value="modern">Modern</option>
+        <option value="minimal">Minimal</option>
+        <option value="executive">Executive</option>
+      </select>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- WORK EXPERIENCE TIMELINE -->
+    <div class="section-header">
+      <span>Work Experience</span>
+      <button class="btn-add" onclick="addRow('workExp')">+ Add</button>
+    </div>
+    <div id="workExp-list"></div>
+
+    <hr class="divider"/>
+
+    <!-- EDUCATION -->
+    <div class="section-header">
+      <span>Education</span>
+      <button class="btn-add" onclick="addRow('edu')">+ Add</button>
+    </div>
+    <div id="edu-list"></div>
+
+    <hr class="divider"/>
+
+    <!-- CERTIFICATIONS -->
+    <div class="section-header">
+      <span>Certifications</span>
+      <button class="btn-add" onclick="addRow('cert')">+ Add</button>
+    </div>
+    <div id="cert-list"></div>
+
+    <hr class="divider"/>
+
+    <div class="field">
+      <label>Experience Highlights *</label>
+      <textarea id="experience" placeholder="Reduced API latency by 35%, Led team of 5 engineers"></textarea>
+      <div class="hint">Comma-separated quick highlights</div>
+    </div>
+
+    <div id="error" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:0.87rem;font-weight:600;"></div>
+    <button class="btn-generate" id="btnGenerate" onclick="generateResume()">Generate Resume</button>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-panel">
+    <div class="preview-placeholder" id="placeholder">
+      Fill in the form and click <strong>&nbsp;Generate Resume&nbsp;</strong> to see your resume here.
+    </div>
+    <div class="download-bar" id="download-bar">
+      <span><i class="fas fa-download"></i> Download Resume</span>
+      <button class="btn-dl btn-dl-html" onclick="downloadHTML()"><i class="fas fa-code"></i> HTML</button>
+      <button class="btn-dl btn-dl-pdf"  onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+      <button class="btn-dl btn-dl-word" onclick="downloadWord()"><i class="fas fa-file-word"></i> Word</button>
+    </div>
+    <div class="resume" id="resumeView">
+      <div class="resume-header">
+        <h1 id="r-name"></h1>
+        <div class="rtitle" id="r-title"></div>
+        <div class="meta">
+          <span id="r-location"></span>
+          <span id="r-phone"></span>
+        </div>
+      </div>
+      <div class="resume-body">
+        <div class="rsection" id="s-summary"></div>
+        <div class="rsection" id="s-work"></div>
+        <div class="rsection" id="s-edu"></div>
+        <div class="rsection" id="s-skills"></div>
+        <div class="rsection" id="s-certs"></div>
+        <div class="rsection" id="s-hobbies"></div>
+        <div class="rsection" id="s-highlights"></div>
+      </div>
+      <div class="resume-footer" id="r-footer"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // â”€â”€ Dynamic row templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const rowTemplates = {
+    workExp: () => `
+      <div class="dynamic-row">
+        <button class="btn-remove" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+        <div class="row-grid">
+          <div class="field"><label>Job Title</label><input type="text" name="we-title" placeholder="Software Engineer"/></div>
+          <div class="field"><label>Company</label><input type="text" name="we-company" placeholder="Acme Corp"/></div>
+          <div class="field"><label>Start Date</label><input type="text" name="we-start" placeholder="Jan 2020"/></div>
+          <div class="field"><label>End Date</label><input type="text" name="we-end" placeholder="Dec 2023 or Present"/></div>
+        </div>
+      </div>`,
+    edu: () => `
+      <div class="dynamic-row">
+        <button class="btn-remove" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+        <div class="row-grid">
+          <div class="field"><label>Degree / Diploma</label><input type="text" name="edu-degree" placeholder="B.Sc. Computer Science"/></div>
+          <div class="field"><label>School / University</label><input type="text" name="edu-inst" placeholder="MIT"/></div>
+          <div class="field"><label>Start Year</label><input type="text" name="edu-start" placeholder="2016"/></div>
+          <div class="field"><label>End Year</label><input type="text" name="edu-end" placeholder="2020"/></div>
+        </div>
+      </div>`,
+    cert: () => `
+      <div class="dynamic-row">
+        <button class="btn-remove" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+        <div class="row-grid">
+          <div class="field"><label>Certification</label><input type="text" name="cert-name" placeholder="AWS Solutions Architect"/></div>
+          <div class="field"><label>Provider</label><input type="text" name="cert-provider" placeholder="Amazon Web Services"/></div>
+          <div class="field"><label>Obtained Date</label><input type="text" name="cert-obtained" placeholder="Mar 2023"/></div>
+          <div class="field"><label>Expiration Date</label><input type="text" name="cert-expiry" placeholder="Mar 2026 or No Expiry"/></div>
+        </div>
+      </div>`
+  };
+
+  function addRow(type) {
+    document.getElementById(type + '-list').insertAdjacentHTML('beforeend', rowTemplates[type]());
+  }
+
+  function removeRow(btn) { btn.closest('.dynamic-row').remove(); }
+
+  // â”€â”€ Collect dynamic rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function collectRows(listId, names) {
+    return [...document.getElementById(listId).querySelectorAll('.dynamic-row')]
+      .map(row => {
+        const obj = {};
+        names.forEach(n => {
+          const el = row.querySelector(`[name="${n}"]`);
+          obj[n.split('-')[1]] = el ? el.value.trim() : '';
+        });
+        return obj;
+      })
+      .filter(obj => Object.values(obj).some(Boolean));
+  }
+
+  // â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function generateResume() {
+    const btn = document.getElementById('btnGenerate');
+    btn.textContent = 'Generating…';
+    btn.disabled = true;
+    document.getElementById('error').style.display = 'none';
+
+    try {
+      // client-side validation
+      const missing = [];
+      if (!document.getElementById('fullName').value.trim())          missing.push('Full Name');
+      if (!document.getElementById('professionalTitle').value.trim()) missing.push('Professional Title');
+      if (!document.getElementById('summary').value.trim())           missing.push('Summary');
+      if (!document.getElementById('skills').value.trim())            missing.push('Skills');
+      if (!document.getElementById('experience').value.trim())        missing.push('Experience Highlights');
+      if (missing.length) { showError('Please fill in: ' + missing.join(', ')); return; }
+
+      const workExperiences = collectRows('workExp-list', ['we-title','we-company','we-start','we-end'])
+        .map(r => ({ title: r.title, company: r.company, startDate: r.start, endDate: r.end }));
+      const educations = collectRows('edu-list', ['edu-degree','edu-inst','edu-start','edu-end'])
+        .map(r => ({ degree: r.degree, institution: r.inst, startYear: r.start, endYear: r.end }));
+      const certifications = collectRows('cert-list', ['cert-name','cert-provider','cert-obtained','cert-expiry'])
+        .map(r => ({ name: r.name, provider: r.provider, obtainDate: r.obtained, expirationDate: r.expiry }));
+      const hobbiesRaw = document.getElementById('hobbies').value;
+
+      const payload = {
+        fullName:             document.getElementById('fullName').value.trim(),
+        professionalTitle:    document.getElementById('professionalTitle').value.trim(),
+        summary:              document.getElementById('summary').value.trim(),
+        skills:               document.getElementById('skills').value.split(',').map(s => s.trim()).filter(Boolean),
+        experienceHighlights: document.getElementById('experience').value.split(',').map(s => s.trim()).filter(Boolean),
+        template:             document.getElementById('template').value,
+        location:             document.getElementById('location').value.trim() || null,
+        phoneNumber:          document.getElementById('phoneNumber').value.trim() || null,
+        educationLevel:       null,
+        workExperiences:      workExperiences.length ? workExperiences : null,
+        educations:           educations.length ? educations : null,
+        certifications:       certifications.length ? certifications : null,
+        hobbies:              hobbiesRaw.split(',').map(s => s.trim()).filter(Boolean)
+      };
+
+      const res = await fetch('api/v1/resumes/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        showError('Server error: ' + (body.detail || body.message || body.title || 'HTTP ' + res.status));
+        return;
+      }
+
+      renderResume(await res.json());
+    } catch (e) {
+      console.error('generateResume:', e);
+      showError('Request failed: ' + (e.message || 'unknown error — check browser console (F12).'));
+    } finally {
+      btn.textContent = 'Generate Resume';
+      btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function renderResume(d) {
+    document.getElementById('r-name').textContent = d.candidateName || '';
+    document.getElementById('r-title').innerHTML = d.professionalTitle
+      ? `<i class="fas fa-briefcase"></i> ${esc(d.professionalTitle)}` : '';
+    setMeta('r-location', d.location,    'fas fa-map-marker-alt');
+    setMeta('r-phone',    d.phoneNumber, 'fas fa-phone');
+
+    buildSection('s-summary', 'Summary', `<p>${esc(findSection(d.sections, 'Summary'))}</p>`);
+
+    // Work experience timeline
+    if (d.workExperiences && d.workExperiences.length) {
+      const html = d.workExperiences.map((w, i) => `
+        <div class="timeline-item">
+          <div class="tl-line">
+            <div class="tl-dot"></div>
+            ${i < d.workExperiences.length - 1 ? '<div class="tl-bar"></div>' : ''}
+          </div>
+          <div class="tl-content">
+            <div class="tl-role">${esc(w.title)}</div>
+            <div class="tl-org">${esc(w.company)}</div>
+            <div class="tl-dates">${esc(w.startDate)} &ndash; ${esc(w.endDate || 'Present')}</div>
+          </div>
+        </div>`).join('');
+      buildSection('s-work', 'Work Experience', `<div class="timeline">${html}</div>`);
+    } else {
+      document.getElementById('s-work').innerHTML = '';
+    }
+
+    // Education timeline
+    if (d.educations && d.educations.length) {
+      const html = d.educations.map((e, i) => `
+        <div class="timeline-item">
+          <div class="tl-line">
+            <div class="tl-dot"></div>
+            ${i < d.educations.length - 1 ? '<div class="tl-bar"></div>' : ''}
+          </div>
+          <div class="tl-content">
+            <div class="tl-role">${esc(e.degree)}</div>
+            <div class="tl-org">${esc(e.institution)}</div>
+            <div class="tl-dates">${esc(e.startYear)} &ndash; ${esc(e.endYear || '')}</div>
+          </div>
+        </div>`).join('');
+      buildSection('s-edu', 'Education', `<div class="timeline">${html}</div>`);
+    } else {
+      document.getElementById('s-edu').innerHTML = '';
+    }
+
+    buildSection('s-skills', 'Skills',
+      '<div class="tags">' +
+        findSection(d.sections, 'Skills').split(',').map(s => `<span class="tag">${esc(s.trim())}</span>`).join('') +
+      '</div>');
+
+    // Certifications
+    if (d.certifications && d.certifications.length) {
+      const cards = d.certifications.map(c => {
+        let dates = '';
+        if (c.obtainDate || c.expirationDate) {
+          dates = `<div class="cert-dates"><i class="fas fa-calendar-alt"></i> ${esc(c.obtainDate || '?')} &ndash; ${esc(c.expirationDate || 'No Expiry')}</div>`;
+        }
+        return `<div class="cert-card">
+          <div class="cert-name">${esc(c.name)}</div>
+          <div class="cert-provider"><i class="fas fa-building"></i> ${esc(c.provider)}</div>
+          ${dates}
+        </div>`;
+      }).join('');
+      buildSection('s-certs', 'Certifications', `<div class="cert-grid">${cards}</div>`);
+    } else {
+      document.getElementById('s-certs').innerHTML = '';
+    }
+
+    // Hobbies
+    if (d.hobbies && d.hobbies.length) {
+      buildSection('s-hobbies', 'Hobbies &amp; Interests',
+        '<div class="tags">' + d.hobbies.map(h => `<span class="hobby-tag">${esc(h)}</span>`).join('') + '</div>');
+    } else {
+      document.getElementById('s-hobbies').innerHTML = '';
+    }
+
+    const highlights = findSection(d.sections, 'Experience');
+    if (highlights) {
+      buildSection('s-highlights', 'Experience Highlights',
+        '<ul class="highlights">' +
+          highlights.split('|').map(s => `<li><i class="fas fa-chevron-right"></i>${esc(s.trim())}</li>`).join('') +
+        '</ul>');
+    } else {
+      document.getElementById('s-highlights').innerHTML = '';
+    }
+
+    document.getElementById('r-footer').innerHTML =
+      `Template: ${esc(d.template)} &bull; Generated: ${new Date(d.generatedAt).toLocaleString()}`;
+
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('resumeView').style.display = 'flex';
+    document.getElementById('download-bar').style.display = 'flex';
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function setMeta(id, value, iconClass) {
+    const el = document.getElementById(id);
+    el.innerHTML = value ? `<i class="${iconClass}"></i> ${esc(value)}` : '';
+  }
+  function findSection(sections, prefix) {
+    if (!sections) return '';
+    const m = sections.find(s => s.startsWith(prefix + ':'));
+    return m ? m.slice(prefix.length + 2).trim() : '';
+  }
+  function buildSection(id, title, html) {
+    document.getElementById(id).innerHTML = `<div class="rsection-title">${title}</div>${html}`;
+  }
+
+  // ── Downloads ──────────────────────────────────────────────────────────────
+  function getResumeStyles() {
+    let css = '';
+    for (const sheet of document.styleSheets) {
+      if (sheet.href) continue; // skip CDN sheets (CORS); re-link FA separately
+      try { css += [...sheet.cssRules].map(r => r.cssText).join('\n'); } catch(e) {}
+    }
+    return css;
+  }
+
+  function buildStandaloneHTML() {
+    const styles = getResumeStyles();
+    const body = document.getElementById('resumeView').outerHTML;
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Resume</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>body{background:#fff;padding:24px}${styles}</style></head><body>${body}</body></html>`;
+  }
+
+  function downloadHTML() {
+    const blob = new Blob([buildStandaloneHTML()], {type: 'text/html'});
+    triggerDownload(blob, 'resume.html');
+  }
+
+  function downloadPDF() {
+    window.print();
+  }
+
+  function downloadWord() {
+    const styles = getResumeStyles();
+    const body = document.getElementById('resumeView').outerHTML;
+    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office'
+  xmlns:w='urn:schemas-microsoft-com:office:word'
+  xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='UTF-8'/><title>Resume</title>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css'/>
+<style>
+${styles}
+/* Word export overrides: flex/none don't render in Word */
+.resume, #resumeView { display: block !important; height: auto !important; overflow: visible !important; }
+.resume-body { padding: 16pt 24pt; }
+.timeline { display: block !important; }
+.timeline-item { display: block !important; margin-bottom: 10pt; }
+.tl-line { display: none !important; }
+.tl-content { display: block; margin-bottom: 4pt; }
+.cert-grid, .tags { display: block !important; }
+.cert-card, .tag, .hobby-tag { display: inline-block; margin: 2pt 4pt; }
+.meta { display: block !important; }
+.meta span { display: inline-block; margin-right: 16pt; }
+</style>
+</head><body>${body}</body></html>`;
+    const blob = new Blob([html], {type: 'application/msword'});
+    triggerDownload(blob, 'resume.doc');
+  }
+
+  function triggerDownload(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }
+</script>
+
+</body>
+</html>

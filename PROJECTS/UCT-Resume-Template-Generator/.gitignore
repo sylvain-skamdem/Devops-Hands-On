@@ -1,0 +1,57 @@
+# ── Maven build output ───────────────────────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ── IDE – IntelliJ IDEA ──────────────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ── IDE – Eclipse / Spring Tool Suite ───────────────────────────────────────
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# ── IDE – VS Code ────────────────────────────────────────────────────────────
+.vscode/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Application server runtimes (never commit these) ─────────────────────────
+apache-tomcat*/
+tomcat*/
+
+# ── Java ─────────────────────────────────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ── Spring Boot ──────────────────────────────────────────────────────────────
+application-local.properties
+application-local.yml
+application-secret*.properties
+application-secret*.yml
+
+# ── Environment / secrets ────────────────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
